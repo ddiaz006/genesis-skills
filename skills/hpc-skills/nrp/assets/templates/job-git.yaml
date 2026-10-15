@@ -1,0 +1,44 @@
+# =============================================================================
+# NRP Nautilus Job that clones a git repository, then runs it.
+# For a private repository, create a Secret with a read-only token and add it
+# to the clone step (see https://nrp.ai/documentation/userdocs/running/jobs/).
+# Results written to /work are lost when the pod ends: write them to a PVC or S3.
+# =============================================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: git-<username>
+  labels:
+    owner: <username>
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 14400
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+      - name: clone
+        image: alpine/git:2.45.2
+        args: ["clone", "--depth=1", "https://github.com/<org>/<repo>.git", "/work/repo"]
+        volumeMounts: [{name: work, mountPath: /work}]
+        resources:
+          requests: {cpu: 500m, memory: 512Mi}
+          limits:   {cpu: 500m, memory: 512Mi}
+      containers:
+      - name: main
+        image: python:3.12-slim
+        workingDir: /work/repo
+        command: ["sh", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          pip install -q -r requirements.txt
+          python main.py
+        volumeMounts: [{name: work, mountPath: /work}]
+        resources:
+          requests: {cpu: "2", memory: 4Gi}
+          limits:   {cpu: "2", memory: 4Gi}
+      volumes:
+      - name: work
+        emptyDir: {}

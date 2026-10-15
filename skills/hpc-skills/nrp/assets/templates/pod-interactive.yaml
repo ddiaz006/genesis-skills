@@ -1,0 +1,28 @@
+# =============================================================================
+# NRP Nautilus interactive pod (bare pods are deleted after 6 hours;
+# max 2 GPUs, 32 GB RAM, 16 CPU cores). Sleep is allowed in bare pods, never in Jobs.
+#   kubectl apply -n <namespace> -f pod-interactive.yaml
+#   kubectl exec -it dev-<username> -n <namespace> -- bash
+#   kubectl delete pod dev-<username> -n <namespace>     # as soon as you are done
+# =============================================================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dev-<username>
+  labels:
+    owner: <username>
+spec:
+  restartPolicy: Never
+  containers:
+  - name: dev
+    image: python:3.12
+    command: ["sleep", "21600"]       # 6 h, matching the bare-pod lifetime
+    resources:
+      requests: {cpu: "2", memory: 4Gi}
+      limits:   {cpu: "2", memory: 4Gi}
+    volumeMounts:
+    - {name: shared, mountPath: /data}
+  volumes:
+  - name: shared
+    persistentVolumeClaim:
+      claimName: shared-<username>    # from pvc-cephfs.yaml; remove if unused

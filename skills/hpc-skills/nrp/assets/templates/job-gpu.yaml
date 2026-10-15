@@ -1,0 +1,46 @@
+# =============================================================================
+# NRP Nautilus single-GPU Job
+# List GPU models: kubectl get nodes -L nvidia.com/gpu.product
+# Special GPUs (A100, A40, RTX A6000, ...) need their own resource key
+# (nvidia.com/a100, ...) instead of nvidia.com/gpu; see references/gpus.md.
+# Keep GPU utilization above 40%; do not request a GPU the code will not use.
+# =============================================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gpu-<username>
+  labels:
+    owner: <username>
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 21600        # 6 h walltime
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values: ["NVIDIA-A10", "NVIDIA-L40", "NVIDIA-RTX-A6000", "NVIDIA-GeForce-RTX-3090"]
+      containers:
+      - name: main
+        image: pytorch/pytorch:2.4.1-cuda12.1-cudnn9-runtime
+        command: ["sh", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          nvidia-smi
+          python -c "import torch; x=torch.randn(8192,8192,device='cuda'); print((x@x).sum().item(), torch.cuda.get_device_name(0))"
+        resources:
+          requests: {cpu: "4", memory: 16Gi, nvidia.com/gpu: 1}
+          limits:   {cpu: "4", memory: 16Gi, nvidia.com/gpu: 1}
+        volumeMounts:
+        - {name: dshm, mountPath: /dev/shm}
+      volumes:
+      - name: dshm                    # default /dev/shm is only 64 MB
+        emptyDir:
+          medium: Memory

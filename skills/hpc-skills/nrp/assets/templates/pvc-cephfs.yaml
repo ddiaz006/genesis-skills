@@ -1,0 +1,19 @@
+# =============================================================================
+# NRP Nautilus shared CephFS volume (ReadWriteMany)
+# Region classes: rook-cephfs (US West), rook-cephfs-central, rook-cephfs-east,
+# rook-cephfs-south-east, rook-cephfs-pacific. For environments and many small
+# files use block storage instead (rook-ceph-block*, ReadWriteOnce).
+# Not archival: volumes unused for 6 months may be purged.
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-<username>
+  labels:
+    owner: <username>
+spec:
+  storageClassName: rook-cephfs
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 50Gi

@@ -1,0 +1,23 @@
+# =============================================================================
+# Interactive pod for debugging (the analogue of salloc / qsub -I)
+#   kubectl apply -n <namespace> -f interactive-pod.yaml
+#   kubectl exec -it dev-<username> -n <namespace> -- bash
+#   kubectl delete pod dev-<username> -n <namespace>     # when done
+# The sleep is bounded; delete the pod as soon as you finish.
+# =============================================================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dev-<username>
+  labels:
+    owner: <username>
+spec:
+  restartPolicy: Never
+  activeDeadlineSeconds: 21600        # hard stop after 6 hours
+  containers:
+  - name: dev
+    image: python:3.12
+    command: ["sleep", "21600"]
+    resources:
+      requests: {cpu: "1", memory: 2Gi}
+      limits:   {cpu: "1", memory: 2Gi}

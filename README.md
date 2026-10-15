@@ -97,7 +97,7 @@ genesis-skills/
 │   ├── basedata-skills/  # croissant-validator, datacard-generator, hdmf-schema-builder, skill-creator, well-convert (5)
 │   ├── baseeval-skills/  # card-eval-updater, configuration-creator, configuration-implementor, configuration-planner, configuration-tester, data-exploration, perlmutter-nemo-eval, perlmutter-nemo-generate (8)
 │   ├── basesafe-skills/  # agentic-vulnerabilities-scan, ai-fingerprint, battleprint, fingerprinting, uncertainty-quantification, uq-metrics-evaluator (6)
-│   ├── hpc-skills/  # aurora, frontier, pbs, perlmutter, slurm (5)
+│   ├── hpc-skills/  # aurora, frontier, kubernetes, nrp, pbs, perlmutter, slurm (7)
 │   ├── literature-search/SKILL.md
 │   ├── multi-agent-systems/SKILL.md
 │   └── plasma-sim-skills/  # gkeyll, gs2 (2)

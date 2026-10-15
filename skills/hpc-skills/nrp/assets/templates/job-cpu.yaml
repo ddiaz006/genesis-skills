@@ -1,0 +1,35 @@
+# =============================================================================
+# NRP Nautilus CPU batch Job
+#   kubectl apply -n <namespace> -f job-cpu.yaml
+#   kubectl logs -n <namespace> -l job-name=cpu-<username> -f
+# NRP rules applied: requests == limits (Gatekeeper allows limits <= 1.2x
+# requests), the command ends by itself (no trailing sleep), TTL cleanup.
+# =============================================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cpu-<username>
+  labels:
+    owner: <username>
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 14400        # 4 h walltime
+  ttlSecondsAfterFinished: 86400      # delete 1 day after it ends
+  template:
+    metadata:
+      labels:
+        owner: <username>
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: main
+        image: python:3.12-slim
+        command: ["sh", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "node: $(hostname)"
+          python -c "import math; print(sum(math.sqrt(i) for i in range(10**8)))"
+        resources:
+          requests: {cpu: "4", memory: 8Gi}
+          limits:   {cpu: "4", memory: 8Gi}

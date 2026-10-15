@@ -1,0 +1,33 @@
+# =============================================================================
+# Kubernetes CPU batch Job template
+# Replace <username>, the image and the command. Submit with:
+#   kubectl apply -n <namespace> -f batch-job.yaml
+# =============================================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-<username>              # unique within the namespace
+  labels:
+    owner: <username>
+spec:
+  backoffLimit: 2                     # retries after a failed pod
+  activeDeadlineSeconds: 7200         # walltime for the whole Job (seconds)
+  ttlSecondsAfterFinished: 86400      # auto-delete 1 day after it ends
+  template:
+    metadata:
+      labels:
+        owner: <username>
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: main
+        image: python:3.12-slim       # pin a tag
+        command: ["sh", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "Running on $(hostname)"
+          python -c "print(sum(i*i for i in range(10**7)))"
+        resources:                    # requests == limits: Guaranteed QoS
+          requests: {cpu: "2", memory: 4Gi}
+          limits:   {cpu: "2", memory: 4Gi}
